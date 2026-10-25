@@ -287,7 +287,6 @@ Utsav Planner is pre-configured for Vercel deployment via `api/index.py` and `ve
    - `GEMINI_MODEL`: `gemini-2.5-flash` (or your preferred Gemini model).
    - `ALLOWED_ORIGINS`: `*` (or your custom domain).
 4. Deploy. Vercel routes all requests to `api/index.py` and packages static assets and templates automatically.
-```
 
 ---
 
