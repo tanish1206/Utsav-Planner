@@ -19,6 +19,14 @@ dependencies = [
     "python-dotenv>=1.0.1",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["api*", "tests*"]
+
+[tool.setuptools.package-data]
+app = ["templates/**/*", "static/**/*"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"
