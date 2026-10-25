@@ -360,3 +360,32 @@ def test_validate_plan_combined_failures() -> None:
     assert "cannot be in the past" in joined
     assert "not permitted for wedding" in joined
     assert "cannot be after event date" in joined
+
+
+def test_validate_vendors_without_event_date() -> None:
+    """Verify validate_vendors functions when event_date is omitted."""
+    plan = make_dummy_plan()
+    errors = validate_vendors(plan, EventType.wedding, event_date=None)
+    assert not errors
+
+
+def test_validate_plan_ideas_count_mismatch() -> None:
+    """Verify that validate_plan catches plans with an invalid idea count."""
+    today = date(2026, 11, 1)
+    request = EventRequest(
+        event_type=EventType.wedding,
+        event_date=date(2026, 12, 1),
+        city="Mumbai",
+        guest_count=100,
+        total_budget_inr=100000,
+    )
+    # Using model_construct to simulate unexpected LLM payload bypassing schema limits
+    plan = Plan.model_construct(
+        budget=make_dummy_plan().budget,
+        timeline=make_dummy_plan().timeline,
+        vendors=make_dummy_plan().vendors,
+        ideas=["Idea 1", "Idea 2"],
+        warnings=[],
+    )
+    errors = validate_plan(plan, request, today)
+    assert any("must contain exactly 5 ideas" in err for err in errors)
