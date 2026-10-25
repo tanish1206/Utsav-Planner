@@ -1,0 +1,177 @@
+/* Utsav Planner - Fixed Theme Palette & WCAG Accessible Styling */
+:root {
+    --color-silver: #dde3e8;
+    --color-aubergine: #3a0f34;
+    --color-marigold: #eaaa00;
+    --color-white: #ffffff;
+    --color-card-bg: #edf2f6;
+    --color-border: #c4cdd5;
+    --color-focus: #eaaa00;
+    --font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-silver);
+    color: var(--color-aubergine);
+    font-family: var(--font-family);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding-bottom: 3rem;
+}
+
+.app-header {
+    background-color: var(--color-aubergine);
+    color: var(--color-silver);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    border-bottom: 4px solid var(--color-marigold);
+}
+
+.app-title {
+    color: var(--color-marigold);
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.5rem;
+}
+
+.app-tagline {
+    color: var(--color-silver);
+    font-size: 1.1rem;
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+.main-content {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.form-section {
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(58, 15, 52, 0.08);
+}
+
+.section-title {
+    color: var(--color-aubergine);
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.5rem;
+}
+
+.plan-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.form-col {
+    flex: 1;
+    min-width: 250px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--color-aubergine);
+    font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    background-color: var(--color-white);
+    color: var(--color-aubergine);
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-aubergine);
+    box-shadow: 0 0 0 3px rgba(234, 170, 0, 0.5);
+}
+
+/* Button with Marigold Background & Aubergine Text (WCAG Compliant) */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--color-marigold);
+    color: var(--color-aubergine);
+}
+
+.btn-primary:hover {
+    background-color: #d19800;
+    transform: translateY(-1px);
+}
+
+.btn-primary:focus-visible {
+    outline: 3px solid var(--color-aubergine);
+    outline-offset: 2px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.spinner-container {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--color-border);
+    border-top-color: var(--color-aubergine);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner-text {
+    color: var(--color-aubergine);
+    font-weight: 600;
+}

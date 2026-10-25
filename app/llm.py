@@ -56,6 +56,16 @@ class PlanCache:
         """Clear all entries from the cache."""
         self._store.clear()
 
+    def get_latest(self) -> Plan | None:
+        """Retrieve the most recently cached plan that has not expired."""
+        if not self._store:
+            return None
+        for key in reversed(list(self._store.keys())):
+            plan = self.get(key)
+            if plan is not None:
+                return plan
+        return None
+
 
 @lru_cache(maxsize=1)
 def get_plan_cache() -> PlanCache:

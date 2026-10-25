@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utsav Planner - AI Event Planning Assistant</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-container">
+            <h1 class="app-title">Utsav Planner</h1>
+            <p class="app-tagline">AI Planning Assistant for Weddings, Birthdays & Community Celebrations</p>
+        </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+        <section class="form-section" aria-labelledby="form-heading">
+            <h2 id="form-heading" class="section-title">Design Your Celebration</h2>
+            <form id="plan-form" class="plan-form" novalidate>
+                <div class="form-group">
+                    <label for="event_type" class="form-label">Event Category</label>
+                    <select id="event_type" name="event_type" class="form-control" required>
+                        <option value="wedding">Wedding Celebration</option>
+                        <option value="birthday">Birthday Party</option>
+                        <option value="community">Community / Cultural Festival</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-col">
+                        <label for="event_date" class="form-label">Event Date</label>
+                        <input type="date" id="event_date" name="event_date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group form-col">
+                        <label for="city" class="form-label">Host City</label>
+                        <input type="text" id="city" name="city" maxlength="80" class="form-control" placeholder="e.g. Mumbai, Jaipur, Pune" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-col">
+                        <label for="guest_count" class="form-label">Estimated Guests</label>
+                        <input type="number" id="guest_count" name="guest_count" min="1" max="5000" class="form-control" value="150" required>
+                    </div>
+
+                    <div class="form-group form-col">
+                        <label for="total_budget_inr" class="form-label">Total Budget (INR ₹)</label>
+                        <input type="number" id="total_budget_inr" name="total_budget_inr" min="10000" max="100000000" class="form-control" value="250000" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="theme" class="form-label">Preferred Theme (Optional)</label>
+                    <input type="text" id="theme" name="theme" maxlength="200" class="form-control" placeholder="e.g. Royal Marigold, Eco-friendly, Retro 90s">
+                </div>
+
+                <div class="form-group">
+                    <label for="dietary" class="form-label">Dietary Preferences (Optional)</label>
+                    <input type="text" id="dietary" name="dietary" maxlength="200" class="form-control" placeholder="e.g. Pure Vegetarian, Jain options, Multi-cuisine">
+                </div>
+
+                <div class="form-group">
+                    <label for="notes" class="form-label">Special Requests & Context (Optional)</label>
+                    <textarea id="notes" name="notes" maxlength="500" rows="3" class="form-control" placeholder="Any specific requirements or traditions..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="language" class="form-label">Plan Language</label>
+                    <select id="language" name="language" class="form-control">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn btn-primary">
+                    <span class="btn-text">Generate Celebration Plan</span>
+                </button>
+            </form>
+        </section>
+
+        <section id="result-section" class="result-section hidden" aria-live="polite">
+            <div id="loading-spinner" class="spinner-container hidden">
+                <div class="spinner" role="status" aria-label="Crafting your customized plan..."></div>
+                <p class="spinner-text">Crafting your celebration plan with Gemini...</p>
+            </div>
+            <div id="plan-display" class="plan-display"></div>
+        </section>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
