@@ -30,44 +30,54 @@ def make_dummy_plan(
 ) -> Plan:
     """Helper factory generating a minimal valid or customized Plan instance."""
     return Plan(
-        budget=budget
-        if budget is not None
-        else [
-            BudgetItem(category="Venue", amount_inr=92000, note="Main hall"),
-            BudgetItem(category="Contingency", amount_inr=8000, note="Contingency 8%"),
-        ],
-        timeline=timeline
-        if timeline is not None
-        else [
-            Task(
-                title="Book Venue",
-                due_date=date(2026, 11, 10),
-                category="Logistics",
-            ),
-            Task(
-                title="Send Invites",
-                due_date=date(2026, 11, 20),
-                category="Guest Mgmt",
-            ),
-        ],
-        vendors=vendors
-        if vendors is not None
-        else [
-            VendorItem(
-                category="Venue",
-                questions=["Capacity?", "Parking availability?"],
-                book_by=date(2026, 11, 10),
-            )
-        ],
-        ideas=ideas
-        if ideas is not None
-        else [
-            "Idea 1: Royal floral arches",
-            "Idea 2: Live acoustic sitar player",
-            "Idea 3: Custom mithai box favors",
-            "Idea 4: Candlelit evening seating",
-            "Idea 5: Interactive polaroid guestbook",
-        ],
+        budget=(
+            budget
+            if budget is not None
+            else [
+                BudgetItem(category="Venue", amount_inr=92000, note="Main hall"),
+                BudgetItem(
+                    category="Contingency", amount_inr=8000, note="Contingency 8%"
+                ),
+            ]
+        ),
+        timeline=(
+            timeline
+            if timeline is not None
+            else [
+                Task(
+                    title="Book Venue",
+                    due_date=date(2026, 11, 10),
+                    category="Logistics",
+                ),
+                Task(
+                    title="Send Invites",
+                    due_date=date(2026, 11, 20),
+                    category="Guest Mgmt",
+                ),
+            ]
+        ),
+        vendors=(
+            vendors
+            if vendors is not None
+            else [
+                VendorItem(
+                    category="Venue",
+                    questions=["Capacity?", "Parking availability?"],
+                    book_by=date(2026, 11, 10),
+                )
+            ]
+        ),
+        ideas=(
+            ideas
+            if ideas is not None
+            else [
+                "Idea 1: Royal floral arches",
+                "Idea 2: Live acoustic sitar player",
+                "Idea 3: Custom mithai box favors",
+                "Idea 4: Candlelit evening seating",
+                "Idea 5: Interactive polaroid guestbook",
+            ]
+        ),
         warnings=[],
     )
 
