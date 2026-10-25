@@ -22,7 +22,14 @@ from app.schemas import EventRequest, Plan
 
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
+try:
+    settings = get_settings()
+    allowed_origins = settings.allowed_origins
+    rate_limit_value = settings.rate_limit
+except Exception as exc:  # pragma: no cover
+    logger.warning("Configuration could not be loaded at startup: %s", exc)
+    allowed_origins = ["*"]
+    rate_limit_value = "10/minute"
 
 # Initialize Rate Limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -46,7 +53,7 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 # 1. CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
@@ -176,7 +183,7 @@ def health_check() -> dict[str, str]:
 
 
 @app.post("/api/plan", response_model=Plan)
-@limiter.limit(settings.rate_limit)
+@limiter.limit(rate_limit_value)
 def create_plan(request: Request, payload: EventRequest) -> Plan:
     """Generate a validated celebration plan from user requirements.
 

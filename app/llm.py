@@ -155,7 +155,13 @@ def generate_plan(
         return cached_plan
 
     # 2. Initialize client and configuration
-    settings = get_settings()
+    try:
+        settings = get_settings()
+    except Exception as exc:
+        raise PlanGenerationError(
+            "Application configuration error: GEMINI_API_KEY and GEMINI_MODEL must be configured in environment variables."
+        ) from exc
+
     active_client = client
     if active_client is None:
         active_client = genai.Client(api_key=settings.gemini_api_key)

@@ -278,6 +278,17 @@ docker inspect --format='{{json .State.Health.Status}}' utsav_app
 docker stop utsav_app
 ```
 
+### 6. Vercel Serverless Deployment
+Utsav Planner is pre-configured for Vercel deployment via `api/index.py` and `vercel.json`:
+1. Push your code to GitHub.
+2. In your [Vercel Dashboard](https://vercel.com/dashboard), import the repository.
+3. In **Project Settings > Environment Variables**, add:
+   - `GEMINI_API_KEY`: Your Google Gemini API key.
+   - `GEMINI_MODEL`: `gemini-2.5-flash` (or your preferred Gemini model).
+   - `ALLOWED_ORIGINS`: `*` (or your custom domain).
+4. Deploy. Vercel routes all requests to `api/index.py` and packages static assets and templates automatically.
+```
+
 ---
 
 ## Known Limitations
