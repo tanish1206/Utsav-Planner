@@ -6,7 +6,6 @@ from typing import Any
 
 import pytest
 
-from app.config import Settings
 from app.llm import PlanCache, PlanGenerationError, generate_plan
 from app.prompts import SYSTEM_PROMPT, escape_user_tag
 from app.schemas import (
@@ -145,20 +144,13 @@ def dummy_request() -> EventRequest:
 @pytest.fixture(autouse=True)
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure test settings are configured without relying on real .env secrets."""
+    from app.config import get_settings
+
     monkeypatch.setenv("GEMINI_API_KEY", "mock-test-key")
     monkeypatch.setenv("GEMINI_MODEL", "gemini-2.5-flash")
-    monkeypatch.setattr(
-        "app.config.get_settings",
-        lambda: Settings(
-            gemini_api_key="mock-test-key",
-            gemini_model="gemini-2.5-flash",
-            max_output_tokens=4096,
-            rate_limit="10/minute",
-            cache_ttl_seconds=3600,
-            cache_max_items=100,
-            allowed_origins=["*"],
-        ),
-    )
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 # --- 1. Valid Output Passes ---
@@ -348,3 +340,73 @@ def test_generate_plan_network_exception_wrapped(
         )
 
     assert "LLM API request failed" in str(exc_info.value)
+
+
+def test_generate_plan_retry_network_exception_wrapped(
+    dummy_request: EventRequest,
+) -> None:
+    """Network exception on the retry attempt must be wrapped in PlanGenerationError."""
+    invalid_plan = make_invalid_plan(dummy_request.total_budget_inr)
+
+    class RetryBrokenModels:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def generate_content(self, **_kwargs: Any) -> Any:
+            self.calls += 1
+            if self.calls == 1:
+                return FakeResponse(invalid_plan.model_dump_json())
+            raise ConnectionError("Network lost during retry")
+
+    class RetryBrokenClient:
+        def __init__(self) -> None:
+            self.models = RetryBrokenModels()
+
+    with pytest.raises(PlanGenerationError) as exc_info:
+        generate_plan(
+            dummy_request,
+            client=RetryBrokenClient(),
+            today=date(2026, 11, 1),
+            cache=PlanCache(),
+        )
+
+    assert "LLM API retry request failed" in str(exc_info.value)
+
+
+def test_parse_response_variations(dummy_request: EventRequest) -> None:
+    """Verify parsing responses with parsed attribute, markdown fences, and bad json."""
+    from app.llm import _parse_response_to_plan
+
+    valid_plan = make_valid_plan(dummy_request.total_budget_inr)
+
+    # 1. response has .parsed attribute
+    class ParsedResponse:
+        def __init__(self, plan: Plan) -> None:
+            self.parsed = plan
+
+    assert _parse_response_to_plan(ParsedResponse(valid_plan)) == valid_plan
+
+    # 2. response has markdown fenced json
+    fenced_text = f"```json\n{valid_plan.model_dump_json()}\n```"
+    assert _parse_response_to_plan(FakeResponse(fenced_text)) == valid_plan
+
+    # 3. response has invalid json
+    with pytest.raises(PlanGenerationError) as exc_bad_json:
+        _parse_response_to_plan(FakeResponse("not a json payload"))
+    assert "Failed to parse LLM response" in str(exc_bad_json.value)
+
+    # 4. response has empty text and no parsed attribute
+    with pytest.raises(PlanGenerationError) as exc_empty:
+        _parse_response_to_plan(FakeResponse(""))
+    assert "did not contain text or structured output" in str(exc_empty.value)
+
+
+def test_plan_cache_clear_and_get_cache_singleton() -> None:
+    """Verify cache.clear() and get_plan_cache() factory."""
+    from app.llm import get_plan_cache
+
+    cache = get_plan_cache()
+    cache.set("k1", make_valid_plan())
+    assert cache.get("k1") is not None
+    cache.clear()
+    assert cache.get("k1") is None

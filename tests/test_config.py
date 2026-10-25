@@ -66,3 +66,4 @@ def test_get_settings_singleton(monkeypatch: pytest.MonkeyPatch) -> None:
     s2 = get_settings()
     assert s1 is s2
     assert s1.gemini_api_key == "singleton-key"
+    get_settings.cache_clear()
