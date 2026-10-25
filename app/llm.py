@@ -198,7 +198,9 @@ def generate_plan(
 
     if is_grok:
         if OpenAI is None:  # pragma: no cover
-            raise PlanGenerationError("openai package is required for xAI Grok support.")
+            raise PlanGenerationError(
+                "openai package is required for xAI Grok support."
+            )
         grok_client = OpenAI(api_key=active_key, base_url="https://api.x.ai/v1")
         grok_model = settings.grok_model or "grok-2-latest"
 
@@ -226,7 +228,9 @@ def generate_plan(
             "Grok Attempt 1 validation failed with %d error(s). Retrying with feedback.",
             len(errors),
         )
-        retry_prompt = build_user_message(request, today=today_date, retry_errors=errors)
+        retry_prompt = build_user_message(
+            request, today=today_date, retry_errors=errors
+        )
         try:
             retry_plan = _generate_with_grok(
                 grok_client, grok_model, retry_prompt, settings.max_output_tokens

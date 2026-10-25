@@ -410,3 +410,40 @@ def test_plan_cache_clear_and_get_cache_singleton() -> None:
     assert cache.get("k1") is not None
     cache.clear()
     assert cache.get("k1") is None
+
+
+def test_generate_with_grok_success(dummy_request: EventRequest) -> None:
+    """Verify _generate_with_grok parses valid JSON from OpenAI-compatible response."""
+    from unittest.mock import MagicMock
+
+    from app.llm import _generate_with_grok
+
+    valid_plan = make_valid_plan(dummy_request.total_budget_inr)
+    mock_choice = MagicMock()
+    mock_choice.message.content = valid_plan.model_dump_json()
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = mock_response
+
+    plan = _generate_with_grok(mock_client, "grok-2-latest", "prompt", 4096)
+    assert plan.budget[0].category == valid_plan.budget[0].category
+
+
+def test_generate_with_grok_invalid_json() -> None:
+    """Verify _generate_with_grok raises PlanGenerationError on bad JSON."""
+    from unittest.mock import MagicMock
+
+    from app.llm import _generate_with_grok
+
+    mock_choice = MagicMock()
+    mock_choice.message.content = "bad-json"
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = mock_response
+
+    with pytest.raises(PlanGenerationError):
+        _generate_with_grok(mock_client, "grok-2-latest", "prompt", 4096)
