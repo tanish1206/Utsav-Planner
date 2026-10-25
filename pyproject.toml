@@ -51,7 +51,7 @@ minversion = "8.0"
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
-addopts = "-ra -q --cov=app --cov-report=term-missing"
+addopts = "-ra -q --cov=app --cov-report=term-missing --cov-fail-under=85"
 
 [tool.coverage.run]
 source = ["app"]
@@ -64,7 +64,7 @@ omit = [
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 80
+fail_under = 85
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",

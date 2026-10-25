@@ -1,0 +1,43 @@
+# Version Control
+.git/
+.github/
+.gitignore
+
+# Environment & Secrets (NEVER copy into image)
+.env
+.env.*
+*.env
+
+# Testing & Coverage
+tests/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Python Caches & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+venv/
+ENV/
+
+# Development Tools & Configurations
+requirements-dev.txt
+.ruff_cache/
+.mypy_cache/
+.vscode/
+.idea/
+
+# Docker build files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentation & Logs
+*.log
+scratch/
