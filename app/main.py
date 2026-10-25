@@ -72,7 +72,7 @@ async def vercel_rewrite_middleware(request: Request, call_next: Any) -> Respons
     ):
         request.scope["path"] = matched_path
     elif request.scope.get("path") in ("/api/index.py", "/api/index"):
-        request.scope["path"] = "/"
+        request.scope["path"] = "/api/plan" if request.method == "POST" else "/"
     return await call_next(request)
 
 
@@ -204,6 +204,11 @@ def health_check() -> dict[str, str]:
 
 
 @app.post("/api/plan", response_model=Plan)
+@app.post("/", response_model=Plan, include_in_schema=False)
+@app.post("/api", response_model=Plan, include_in_schema=False)
+@app.post("/api/", response_model=Plan, include_in_schema=False)
+@app.post("/api/index", response_model=Plan, include_in_schema=False)
+@app.post("/api/index.py", response_model=Plan, include_in_schema=False)
 @limiter.limit(rate_limit_value)
 def create_plan(request: Request, payload: EventRequest) -> Plan:
     """Generate a validated celebration plan from user requirements.

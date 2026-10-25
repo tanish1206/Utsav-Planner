@@ -491,6 +491,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!response.ok) {
                     if (data.errors && Array.isArray(data.errors)) {
                         const apiErrors = data.errors.map((err) => {
+                            if (typeof err === "string") {
+                                return {
+                                    fieldId: "plan-form",
+                                    message: err,
+                                };
+                            }
                             let fieldName = "city";
                             if (typeof err.field === "string") {
                                 const parts = err.field.split(" -> ");
@@ -498,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                             return {
                                 fieldId: fieldName,
-                                message: err.message || data.detail || "Validation error",
+                                message: err.message || (typeof err === "string" ? err : data.detail) || "Validation error",
                             };
                         });
                         showFormErrors(apiErrors);
