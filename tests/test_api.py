@@ -6,7 +6,6 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import Settings
 from app.llm import PlanGenerationError, get_plan_cache
 from app.main import app
 from app.schemas import (
@@ -83,24 +82,14 @@ def valid_request_payload() -> dict[str, Any]:
 
 
 @pytest.fixture
-def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+def client(monkeypatch: pytest.MonkeyPatch) -> Any:
     """TestClient fixture with test settings and fresh plan cache."""
     monkeypatch.setenv("GEMINI_API_KEY", "mock-test-key")
     monkeypatch.setenv("GEMINI_MODEL", "gemini-2.5-flash")
-    monkeypatch.setattr(
-        "app.config.get_settings",
-        lambda: Settings(
-            gemini_api_key="mock-test-key",
-            gemini_model="gemini-2.5-flash",
-            max_output_tokens=4096,
-            rate_limit="5/minute",
-            cache_ttl_seconds=3600,
-            cache_max_items=100,
-            allowed_origins=["*"],
-        ),
-    )
     get_plan_cache().clear()
-    return TestClient(app)
+    app.state.limiter.reset()
+    yield TestClient(app, raise_server_exceptions=False)
+    app.state.limiter.reset()
 
 
 # --- 1. Successful Plan Generation ---
@@ -184,9 +173,9 @@ def test_rate_limit_exceeded(
     mock_plan = make_mock_plan(valid_request_payload["total_budget_inr"])
     monkeypatch.setattr("app.main.generate_plan", lambda _payload: mock_plan)
 
-    # Config has rate_limit="5/minute". Submitting 6 calls in succession:
+    # Config has rate_limit="10/minute" or "5/minute". Submitting 15 calls:
     statuses = []
-    for _ in range(6):
+    for _ in range(15):
         res = client.post("/api/plan", json=valid_request_payload)
         statuses.append(res.status_code)
 

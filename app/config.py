@@ -43,12 +43,12 @@ class Settings(BaseSettings):
         ge=1,
         description="Maximum number of items held in the in-memory plan cache.",
     )
-    allowed_origins: list[str] = Field(
+    allowed_origins: list[str] | str = Field(
         default_factory=lambda: ["*"],
         description="List of allowed CORS origins or comma-separated string in env.",
     )
 
-    @field_validator("allowed_origins", mode="before")
+    @field_validator("allowed_origins")
     @classmethod
     def parse_allowed_origins(cls, value: object) -> list[str]:
         """Parse allowed origins from a comma-separated string or list.
