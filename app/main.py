@@ -59,6 +59,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# 0. Vercel Serverless Rewrite Normalization
+@app.middleware("http")
+async def vercel_rewrite_middleware(request: Request, call_next: Any) -> Response:
+    """Normalize paths when Vercel rewrites requests to the serverless entrypoint."""
+    matched_path = request.headers.get("x-matched-path")
+    if matched_path and request.scope.get("path") in (
+        "/api/index.py",
+        "/api/index",
+        "/api",
+    ):
+        request.scope["path"] = matched_path
+    elif request.scope.get("path") in ("/api/index.py", "/api/index"):
+        request.scope["path"] = "/"
+    return await call_next(request)
+
+
 # 2. Maximum Payload Size Limit (64 KB)
 MAX_BODY_SIZE = 64 * 1024
 
@@ -171,6 +188,10 @@ async def unhandled_exception_handler(
 
 # --- Routes ---
 @app.get("/", response_class=HTMLResponse)
+@app.get("/api", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/api/", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/api/index", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/api/index.py", response_class=HTMLResponse, include_in_schema=False)
 def index_view(request: Request) -> Response:
     """Render the accessible planning form landing page."""
     return templates.TemplateResponse(request=request, name="index.html")
