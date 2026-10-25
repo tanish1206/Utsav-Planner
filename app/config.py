@@ -23,6 +23,14 @@ class Settings(BaseSettings):
     gemini_model: str = Field(
         description="Google Gemini model identifier loaded from GEMINI_MODEL.",
     )
+    grok_api_key: str | None = Field(
+        default=None,
+        description="xAI Grok API key loaded from GROK_API_KEY or XAI_API_KEY.",
+    )
+    grok_model: str = Field(
+        default="grok-2-latest",
+        description="xAI Grok model identifier loaded from GROK_MODEL.",
+    )
     max_output_tokens: int = Field(
         default=4096,
         ge=1,

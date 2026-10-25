@@ -10,6 +10,11 @@ from typing import Any
 from google import genai
 from google.genai import types
 
+try:
+    from openai import OpenAI
+except ImportError:  # pragma: no cover
+    OpenAI = None  # type: ignore[assignment,misc]
+
 from app.config import get_settings
 from app.prompts import SYSTEM_PROMPT, build_user_message
 from app.schemas import EventRequest, Plan
@@ -124,6 +129,32 @@ def _parse_response_to_plan(response: Any) -> Plan:
     raise PlanGenerationError("LLM response did not contain text or structured output.")
 
 
+def _generate_with_grok(
+    grok_client: Any,
+    model: str,
+    prompt: str,
+    max_tokens: int,
+) -> Plan:
+    """Generate and parse structured Plan using xAI Grok API."""
+    response = grok_client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ],
+        response_format={"type": "json_object"},
+        max_tokens=max_tokens,
+        temperature=0.2,
+    )
+    raw = response.choices[0].message.content or ""
+    try:
+        return Plan.model_validate_json(raw)
+    except Exception as exc:
+        raise PlanGenerationError(
+            f"Failed to parse Grok LLM response into Plan schema: {exc}"
+        ) from exc
+
+
 def generate_plan(
     request: EventRequest,
     client: Any = None,
@@ -134,7 +165,7 @@ def generate_plan(
 
     Args:
         request: User event planning request.
-        client: Injected Google GenAI client (optional, uses real client if None).
+        client: Injected LLM client (optional, uses real client if None).
         today: Reference planning date (defaults to date.today()).
         cache: Optional PlanCache instance (defaults to singleton get_plan_cache()).
 
@@ -159,9 +190,63 @@ def generate_plan(
         settings = get_settings()
     except Exception as exc:
         raise PlanGenerationError(
-            "Application configuration error: GEMINI_API_KEY and GEMINI_MODEL must be configured in environment variables."
+            "Application configuration error: LLM API key and model must be configured in environment variables."
         ) from exc
 
+    active_key = settings.grok_api_key or settings.gemini_api_key
+    is_grok = client is None and bool(active_key and active_key.startswith("xai-"))
+
+    if is_grok:
+        if OpenAI is None:  # pragma: no cover
+            raise PlanGenerationError("openai package is required for xAI Grok support.")
+        grok_client = OpenAI(api_key=active_key, base_url="https://api.x.ai/v1")
+        grok_model = settings.grok_model or "grok-2-latest"
+
+        logger.info(
+            "Dispatching Grok LLM plan generation: type=%s, lang=%s",
+            request.event_type.value,
+            request.language.value,
+        )
+        first_prompt = build_user_message(request, today=today_date)
+        try:
+            plan = _generate_with_grok(
+                grok_client, grok_model, first_prompt, settings.max_output_tokens
+            )
+        except PlanGenerationError:
+            raise
+        except Exception as exc:
+            raise PlanGenerationError(f"Grok API request failed: {exc}") from exc
+
+        errors = validate_plan(plan, request, today_date)
+        if not errors:
+            cache_instance.set(cache_key, plan)
+            return plan
+
+        logger.warning(
+            "Grok Attempt 1 validation failed with %d error(s). Retrying with feedback.",
+            len(errors),
+        )
+        retry_prompt = build_user_message(request, today=today_date, retry_errors=errors)
+        try:
+            retry_plan = _generate_with_grok(
+                grok_client, grok_model, retry_prompt, settings.max_output_tokens
+            )
+        except PlanGenerationError:
+            raise
+        except Exception as exc:
+            raise PlanGenerationError(f"Grok API retry request failed: {exc}") from exc
+
+        retry_errors = validate_plan(retry_plan, request, today_date)
+        if not retry_errors:
+            cache_instance.set(cache_key, retry_plan)
+            return retry_plan
+
+        raise PlanGenerationError(
+            f"Plan generation failed validation after retry: {'; '.join(retry_errors)}",
+            errors=retry_errors,
+        )
+
+    # Gemini / Default client flow
     active_client = client
     if active_client is None:
         active_client = genai.Client(api_key=settings.gemini_api_key)
